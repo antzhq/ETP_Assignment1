@@ -1,0 +1,155 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,array}
+\usepackage[T1]{fontenc}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\newcommand{\T}[1]{\text{#1}}
+\begin{document}
+{\Large\bfseries Mathematical model: hybrid CSP + PVT plant sizing}\\[2pt]
+{\small Assignment 1, Question 5}
+\vspace{6pt}
+
+\section{Sets}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Symbol & Definition\\\midrule
+$\T{Days}$ & $\{\T{June},\ \T{December}\}$\\
+$\T{Hrs}$ & $\{0,1,\dots,23\}$\\
+$\T{SunHrs}_{\T{day}}$ & $\{\T{hr}\in\T{Hrs} : \T{Irradiance}_{\T{hr,day}}>0\}$, the sunlit hours of each day\\
+\bottomrule
+\end{tabular}
+
+\section{Parameters}
+\textbf{Data}, for all $\T{hr}\in\T{Hrs}$ and $\T{day}\in\T{Days}$:\\[2pt]
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Unit\\\midrule
+$\T{Irradiance}_{\T{hr,day}}$ & solar irradiance & W/m$^2$\\
+$\T{T}_{\T{ambient,hr,day}}$ & ambient air temperature & $^\circ$C\\
+$\T{Demand}_{\T{elec,hr,day}}$ & electricity demand in that hour & GJ\\
+$\T{Demand}_{\T{heat,hr,day}}$ & heat demand in that hour & GJ\\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}\textbf{CSP}\\[2pt]
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Value\\\midrule
+$\T{Eff}_{\T{reflectivity}}$ & heliostat mirror reflectivity & 0.95\\
+$\T{Eff}_{\T{cosine}}$ & average cosine efficiency & 0.86\\
+$\T{Eff}_{\T{shading blocking}}$ & shading and blocking efficiency & 0.89\\
+$\T{Eff}_{\T{atmospheric}}$ & atmospheric attenuation efficiency & 0.97\\
+$\T{Eff}_{\T{spillage}}$ & spillage efficiency & 0.92\\
+$\T{Eff}_{\T{receiver}}$ & receiver absorption efficiency & 0.80\\
+$\T{Eff}_{\T{rankine}}$ & Rankine cycle thermal efficiency & 0.42\\
+$\T{Area}_{\T{per heliostat}}$ & mirror area of one heliostat & 220 m$^2$\\
+$\T{Cost}_{\T{CSP}}$ & heliostat cost per m$^2$ & \texteuro80/m$^2$\\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}\textbf{PVT}\\[2pt]
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Value\\\midrule
+$\T{Eff}_{\T{PVT,elec}}$ & PVT electrical efficiency & 0.16\\
+$\T{Frac}_{\T{absorbed}}$ & effective optical fraction & 0.86\\
+$\T{Coef}_{\T{heat loss}}$ & overall heat loss coefficient & 12 W/(m$^2\cdot$K)\\
+$\T{Factor}_{\T{heat removal}}$ & collector heat removal factor & 0.65\\
+$\T{T}_{\T{water in}}$ & inlet water temperature & 35 $^\circ$C\\
+$\T{FlowRate}_{\T{per PVT panel}}$ & water mass flow rate through one panel & 0.2 kg/s\\
+$\T{c}_{\T{p,water}}$ & specific heat of water (standard value) & 4186 J/(kg$\cdot$K)\\
+$\T{Area}_{\T{per PVT panel}}$ & area of one PVT panel & 4 m$^2$\\
+$\T{Cost}_{\T{PVT}}$ & PVT cost per m$^2$ & \texteuro150/m$^2$\\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}\textbf{Plant}\\[2pt]
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Value\\\midrule
+$\T{Area}_{\T{max}}$ & maximum available area & 450\,000 m$^2$\\
+$\T{Share}_{\T{CSP,min}}$ & minimum CSP share of electricity & 0.60\\
+$\T{GJ}_{\T{per W-hr}}$ & energy of 1 W sustained for 1 hour & $3.6\times10^{-6}$ GJ\\
+\bottomrule
+\end{tabular}
+
+\section{Derived parameters}
+\textbf{Efficiency chains}
+\begin{align*}
+\T{Eff}_{\T{optical}} &= \T{Eff}_{\T{reflectivity}}\cdot\T{Eff}_{\T{cosine}}\cdot\T{Eff}_{\T{shading blocking}}\cdot\T{Eff}_{\T{atmospheric}}\cdot\T{Eff}_{\T{spillage}}\\
+\T{Eff}_{\T{CSP}} &= \T{Eff}_{\T{optical}}\cdot\T{Eff}_{\T{receiver}}\cdot\T{Eff}_{\T{rankine}}
+\end{align*}
+\textbf{Yield per m$^2$}, for all $\T{hr}\in\T{Hrs}$ and $\T{day}\in\T{Days}$ [W/m$^2$]
+\begin{align*}
+\T{Yield}_{\T{CSP elec,hr,day}} &= \T{Eff}_{\T{CSP}}\cdot\T{Irradiance}_{\T{hr,day}}\\
+\T{Yield}_{\T{PVT elec,hr,day}} &= \T{Eff}_{\T{PVT,elec}}\cdot\T{Irradiance}_{\T{hr,day}}\\
+\T{Yield}_{\T{PVT heat,hr,day}} &= \max\Big(0,\ \T{Factor}_{\T{heat removal}}\big[\T{Frac}_{\T{absorbed}}\cdot\T{Irradiance}_{\T{hr,day}}\\
+&\hspace{6em}-\T{Coef}_{\T{heat loss}}\,(\T{T}_{\T{water in}}-\T{T}_{\T{ambient,hr,day}})\big]\Big)
+\end{align*}
+This is the heat-removal-factor form of the flat plate collector,
+$\dot{Q}_u = F_R A_c\big[(\tau\alpha)_{\T{eff}} I_T - U(T_{\T{in}}-T_a)\big]$ with $A_r=A_c$,
+divided by the collector area. Losses are evaluated at the inlet water temperature;
+$\T{Factor}_{\T{heat removal}}$ corrects for the plate being warmer.
+
+\textbf{PVT water outlet temperature}, for all $\T{hr}\in\T{Hrs}$ and $\T{day}\in\T{Days}$ [$^\circ$C]
+\[
+\T{T}_{\T{water out,hr,day}} = \T{T}_{\T{water in}} + \frac{\T{Area}_{\T{per PVT panel}}\cdot\T{Yield}_{\T{PVT heat,hr,day}}}{\T{FlowRate}_{\T{per PVT panel}}\cdot\T{c}_{\T{p,water}}}
+\]
+
+\section{Decision variables}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Domain\\\midrule
+$\T{Count}_{\T{heliostats}}$ & number of heliostats & $\{0,1,2,\dots\}$\\
+$\T{Count}_{\T{PVT panels}}$ & number of PVT panels & $\{0,1,2,\dots\}$\\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}with the resulting areas
+\[
+\T{Area}_{\T{CSP}}=\T{Area}_{\T{per heliostat}}\cdot\T{Count}_{\T{heliostats}}
+\qquad
+\T{Area}_{\T{PVT}}=\T{Area}_{\T{per PVT panel}}\cdot\T{Count}_{\T{PVT panels}}
+\]
+
+\section{Full model}
+\textbf{Supply}, for all $\T{hr}\in\T{Hrs}$ and $\T{day}\in\T{Days}$ [GJ]
+\begin{align*}
+\T{Supply}_{\T{CSP elec,hr,day}} &= \T{GJ}_{\T{per W-hr}}\cdot\T{Area}_{\T{CSP}}\cdot\T{Yield}_{\T{CSP elec,hr,day}}\\
+\T{Supply}_{\T{PVT elec,hr,day}} &= \T{GJ}_{\T{per W-hr}}\cdot\T{Area}_{\T{PVT}}\cdot\T{Yield}_{\T{PVT elec,hr,day}}\\
+\T{Supply}_{\T{PVT heat,hr,day}} &= \T{GJ}_{\T{per W-hr}}\cdot\T{Area}_{\T{PVT}}\cdot\T{Yield}_{\T{PVT heat,hr,day}}
+\end{align*}
+
+\textbf{Objective function}
+\[
+\min\ \T{Cost}_{\T{total}}=\T{Cost}_{\T{CSP}}\cdot\T{Area}_{\T{CSP}}+\T{Cost}_{\T{PVT}}\cdot\T{Area}_{\T{PVT}}
+\]
+
+\textbf{Constraints}
+
+Heat demand, for all $\T{day}\in\T{Days}$:
+\begin{equation}\tag{C1}
+\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\T{Supply}_{\T{PVT heat,hr,day}}\ \ge\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\T{Demand}_{\T{heat,hr,day}}
+\end{equation}
+Electricity demand, for all $\T{day}\in\T{Days}$:
+\begin{equation}\tag{C2}
+\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\big(\T{Supply}_{\T{CSP elec,hr,day}}+\T{Supply}_{\T{PVT elec,hr,day}}\big)\ \ge\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\T{Demand}_{\T{elec,hr,day}}
+\end{equation}
+Minimum CSP share, for all $\T{day}\in\T{Days}$:
+\begin{multline}\tag{C3}
+\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\T{Supply}_{\T{CSP elec,hr,day}}\\
+\ge\ \T{Share}_{\T{CSP,min}}\sum_{\T{hr}\in\T{SunHrs}_{\T{day}}}\big(\T{Supply}_{\T{CSP elec,hr,day}}+\T{Supply}_{\T{PVT elec,hr,day}}\big)
+\end{multline}
+Available area:
+\begin{equation}\tag{C4}
+\T{Area}_{\T{CSP}}+\T{Area}_{\T{PVT}}\le\T{Area}_{\T{max}}
+\end{equation}
+Integrality and non-negativity:
+\begin{equation}\tag{C5}
+\T{Count}_{\T{heliostats}},\ \T{Count}_{\T{PVT panels}}\in\{0,1,2,\dots\}
+\end{equation}
+\end{document}
